@@ -10,7 +10,6 @@ let isAdmin = false;
 let currentPrevisione = null;
 let impostazioni = null;
 
-// Funzione per fare richieste all'API
 // Funzione per fare richieste all'API utilizzando JSONP (aggira CORS)
 function fetchAPI(endpoint, action, data = null) {
   return new Promise((resolve, reject) => {
@@ -66,19 +65,10 @@ function fetchAPI(endpoint, action, data = null) {
 document.addEventListener('DOMContentLoaded', async () => {
     // Gestione sezioni
     setupEventListeners();
+    
     // Test connessione all'avvio
-testConnection();
-
-// Funzione per testare la connessione
-function testConnection() {
-  fetchAPI('test', 'connection')
-    .then(response => {
-      console.log('✅ Connessione al server: OK', response);
-    })
-    .catch(error => {
-      console.error('❌ Errore di connessione al server:', error);
-    });
-}
+    testConnection();
+    
     // Verifica login utente
     if (token) {
         await checkAuthStatus();
@@ -93,6 +83,17 @@ function testConnection() {
     // Popola il form delle previsioni con i cardinali
     populateCardinalSelect();
 });
+
+// Funzione per testare la connessione
+function testConnection() {
+  fetchAPI('test', 'connection')
+    .then(response => {
+      console.log('✅ Connessione al server: OK', response);
+    })
+    .catch(error => {
+      console.error('❌ Errore di connessione al server:', error);
+    });
+}
 
 // FUNZIONI DI AUTENTICAZIONE
 
@@ -232,6 +233,80 @@ function logout() {
     // Torna alla home
     showSection('home');
     showAlert('Logout effettuato con successo!', 'success');
+}
+
+// Richiedi reset password
+async function requestPasswordReset(email) {
+  try {
+    const data = await fetchAPI('auth', 'requestPasswordReset', { email });
+    
+    if (data.success) {
+      showAlert(data.message, 'success');
+      // Mostra il form per inserire il token e la nuova password
+      document.getElementById('requestResetForm').style.display = 'none';
+      document.getElementById('confirmResetForm').style.display = 'block';
+      return true;
+    } else {
+      showAlert(data.message || 'Errore durante la richiesta di reset', 'error');
+      return false;
+    }
+  } catch (error) {
+    console.error('Errore durante la richiesta di reset:', error);
+    showAlert('Errore di connessione al server', 'error');
+    return false;
+  }
+}
+
+// Resetta password con token
+async function resetPassword(token, newPassword) {
+  try {
+    const data = await fetchAPI('auth', 'resetPassword', { 
+      token,
+      newPassword
+    });
+    
+    if (data.success) {
+      showAlert(data.message, 'success');
+      // Torna al login
+      showLoginForm();
+      return true;
+    } else {
+      showAlert(data.message || 'Errore durante il reset della password', 'error');
+      return false;
+    }
+  } catch (error) {
+    console.error('Errore durante il reset della password:', error);
+    showAlert('Errore di connessione al server', 'error');
+    return false;
+  }
+}
+
+// Mostra form per il recupero password
+function showPasswordResetForm() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('adminLoginForm').style.display = 'none';
+  document.getElementById('passwordResetSection').style.display = 'block';
+  
+  // Reset dei form
+  document.getElementById('requestResetForm').style.display = 'block';
+  document.getElementById('confirmResetForm').style.display = 'none';
+  document.getElementById('resetEmail').value = '';
+  document.getElementById('resetToken').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmNewPassword').value = '';
+}
+
+// Funzione per mostrare il form di login
+function showLoginForm() {
+  document.getElementById('passwordResetSection').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('authSection').style.display = 'block';
+  document.querySelector('.tab[data-tab="login"]').classList.add('active');
+  document.querySelector('.tab[data-tab="register"]').classList.remove('active');
+  document.getElementById('login').classList.add('active');
+  document.getElementById('register').classList.remove('active');
 }
 
 // FUNZIONI PER LE PREVISIONI
@@ -744,373 +819,311 @@ function setupEventListeners() {
     const partecipaNowBtn = document.getElementById('partecipaNowBtn');
     if (partecipaNowBtn) {
         partecipaNowBtn.addEventListener('click', function() {
-            if (currentUser) {
-                showSection('account');
-            } else {
-                document.getElementById('authSection').style.display = 'block';
-            }
-        });
-    }
-    
-    // Click su admin
-    const adminBtn = document.getElementById('adminBtn');
-    if (adminBtn) {
-        adminBtn.addEventListener('click', function() {
-            document.getElementById('adminSection').style.display = 'block';
-            document.getElementById('adminLoginForm').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-        });
-    }
-    
-    // Login form submit
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            if (await login(email, password)) {
-                document.getElementById('authSection').style.display = 'none';
-                loginForm.reset();
-            }
-        });
-    }
-    
-    // Register form submit
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) {
-        registerForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const nome = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                showAlert('Le password non coincidono!', 'error');
-                return;
-            }
-            
-            if (await register(nome, email, password)) {
-                document.getElementById('authSection').style.display = 'none';
-                registerForm.reset();
-            }
-        });
-    }
-    
-    // Admin login submit
-    const adminLoginBtn = document.getElementById('adminLoginBtn');
-    if (adminLoginBtn) {
-        adminLoginBtn.addEventListener('click', async function() {
-            const password = document.getElementById('adminPassword').value;
-            
-            if (await adminLogin(password)) {
-                document.getElementById('adminPassword').value = '';
-            }
-        });
-    }
-    
-    // Click su createScommessa
-    const createScommessaBtn = document.getElementById('createScommessaBtn');
-    if (createScommessaBtn) {
-        createScommessaBtn.addEventListener('click', function() {
-            document.getElementById('noScommessaMessage').style.display = 'none';
-            document.getElementById('scommessaForm').style.display = 'block';
-            
-            // Reset form
-            const predictionForm = document.getElementById('predictionForm');
-            if (predictionForm) {
-                predictionForm.reset();
-            }
-        });
-    }
-    
-    // Click su editScommessa
-    const editScommessaBtn = document.getElementById('editScommessaBtn');
-    if (editScommessaBtn) {
-        editScommessaBtn.addEventListener('click', function() {
-            document.getElementById('existingScommessa').style.display = 'none';
-            document.getElementById('scommessaForm').style.display = 'block';
-            
-            // Popola il form con i dati esistenti
-            if (currentPrevisione) {
-                const cardinale1Select = document.getElementById('cardinale1');
-                const cardinale2Select = document.getElementById('cardinale2');
-                const cardinale3Select = document.getElementById('cardinale3');
-                
-                if (cardinale1Select) {
-                    // Se il cardinale è nella lista, selezionalo, altrimenti seleziona "Altri"
-                    if (CARDINALI.includes(currentPrevisione.cardinale1)) {
-                        cardinale1Select.value = currentPrevisione.cardinale1;
-                    } else {
-                        cardinale1Select.value = 'Altri';
-                        document.getElementById('altro1Container').style.display = 'block';
-                        document.getElementById('altroCardinale1').value = currentPrevisione.cardinale1;
-                    }
-                }
-                
-                if (cardinale2Select) {
-                    if (CARDINALI.includes(currentPrevisione.cardinale2)) {
-                        cardinale2Select.value = currentPrevisione.cardinale2;
-                    } else {
-                        cardinale2Select.value = 'Altri';
-                        document.getElementById('altro2Container').style.display = 'block';
-                        document.getElementById('altroCardinale2').value = currentPrevisione.cardinale2;
-                    }
-                }
-                
-                if (cardinale3Select) {
-                    if (CARDINALI.includes(currentPrevisione.cardinale3)) {
-                        cardinale3Select.value = currentPrevisione.cardinale3;
-                    } else {
-                        cardinale3Select.value = 'Altri';
-                        document.getElementById('altro3Container').style.display = 'block';
-                        document.getElementById('altroCardinale3').value = currentPrevisione.cardinale3;
-                    }
-                }
-                
-                const nome1Input = document.getElementById('nome1');
-                const nome2Input = document.getElementById('nome2');
-                const nome3Input = document.getElementById('nome3');
-                const fumataSelect = document.getElementById('fumata');
-                
-                if (nome1Input) nome1Input.value = currentPrevisione.nome1;
-                if (nome2Input) nome2Input.value = currentPrevisione.nome2;
-                if (nome3Input) nome3Input.value = currentPrevisione.nome3;
-                if (fumataSelect) fumataSelect.value = currentPrevisione.fumata;
-            }
-        });
-    }
-    
-    // Form previsione submit
-    const predictionForm = document.getElementById('predictionForm');
-    if (predictionForm) {
-        predictionForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Raccogli dati
-            let cardinale1 = document.getElementById('cardinale1').value;
-            let cardinale2 = document.getElementById('cardinale2').value;
-            let cardinale3 = document.getElementById('cardinale3').value;
-            
-            // Gestione campo "Altri"
-            if (cardinale1 === 'Altri') {
-                cardinale1 = document.getElementById('altroCardinale1').value;
-                if (!cardinale1.trim()) {
-                    showAlert('Specificare il primo cardinale', 'error');
-                    return;
-                }
-            }
-            
-            if (cardinale2 === 'Altri') {
-                cardinale2 = document.getElementById('altroCardinale2').value;
-                if (!cardinale2.trim()) {
-                    showAlert('Specificare il secondo cardinale', 'error');
-                    return;
-                }
-            }
-            
-            if (cardinale3 === 'Altri') {
-                cardinale3 = document.getElementById('altroCardinale3').value;
-                if (!cardinale3.trim()) {
-                    showAlert('Specificare il terzo cardinale', 'error');
-                    return;
-                }
-            }
-            
-            const nome1 = document.getElementById('nome1').value.trim();
-            const nome2 = document.getElementById('nome2').value.trim();
-            const nome3 = document.getElementById('nome3').value.trim();
-            const fumata = document.getElementById('fumata').value;
-            
-            // Validazione
-            if (!nome1 || !nome2 || !nome3) {
-                showAlert('Tutti i nomi papali sono obbligatori', 'error');
-                return;
-            }
-            
-            if (!fumata) {
-                showAlert('Selezionare un\'opzione per la fumata bianca', 'error');
-                return;
-            }
-            
-            const formData = {
-                cardinale1,
-                cardinale2,
-                cardinale3,
-                nome1,
-                nome2,
-                nome3,
-                fumata
-            };
-            
-            if (await savePrediction(formData)) {
-                document.getElementById('scommessaForm').style.display = 'none';
-            }
-        });
-    }
-    
-    // Form risultati submit
-    const risultatiForm = document.getElementById('risultatiForm');
-    if (risultatiForm) {
-        risultatiForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const cardinale_eletto = document.getElementById('cardinaleElettoAdmin').value.trim();
-            const nome_scelto = document.getElementById('nomeSceltoPapaAdmin').value.trim();
-            const fumata = document.getElementById('fumataAdmin').value;
-            
-            if (!cardinale_eletto || !nome_scelto || !fumata) {
-                showAlert('Tutti i campi sono obbligatori', 'error');
-                return;
-            }
-            
-            const formData = {
-                cardinale_eletto,
-                nome_scelto,
-                fumata
-            };
-            
-            if (await saveRisultati(formData)) {
-                // Ricarica classifica
-                loadClassifica();
-            }
-        });
-    }
-    
-    // Click su calcolaClassifica
-    const calcolaClassificaBtn = document.getElementById('calcolaClassificaBtn');
-    if (calcolaClassificaBtn) {
-        calcolaClassificaBtn.addEventListener('click', async function() {
-            if (await calcolaClassifica()) {
-                // Ricarica classifica
-                loadClassifica();
-            }
-        });
-    }
-    
-    // Click su saveSettings
-    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-    if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', async function() {
-            const deadlineDate = document.getElementById('deadlineDate').value;
-            
-            if (!deadlineDate) {
-                showAlert('Selezionare una data limite', 'error');
-                return;
-            }
-            
-            if (await saveAdminSettings(deadlineDate)) {
-                loadAdminSettings();
-            }
-        });
-    }
+   if (currentUser) {
+               showSection('account');
+           } else {
+               document.getElementById('authSection').style.display = 'block';
+           }
+       });
+   }
+   
+   // Click su admin
+   const adminBtn = document.getElementById('adminBtn');
+   if (adminBtn) {
+       adminBtn.addEventListener('click', function() {
+           document.getElementById('adminSection').style.display = 'block';
+           document.getElementById('adminLoginForm').style.display = 'block';
+           document.getElementById('adminPanel').style.display = 'none';
+       });
+   }
+   
+   // Login form submit
+   const loginForm = document.getElementById('loginForm');
+   if (loginForm) {
+       loginForm.addEventListener('submit', async function(e) {
+           e.preventDefault();
+           
+           const email = document.getElementById('loginEmail').value;
+           const password = document.getElementById('loginPassword').value;
+           
+           if (await login(email, password)) {
+               document.getElementById('authSection').style.display = 'none';
+               loginForm.reset();
+           }
+       });
+   }
+   
+   // Register form submit
+   const registerForm = document.getElementById('registerForm');
+   if (registerForm) {
+       registerForm.addEventListener('submit', async function(e) {
+           e.preventDefault();
+           
+           const nome = document.getElementById('registerName').value;
+           const email = document.getElementById('registerEmail').value;
+           const password = document.getElementById('registerPassword').value;
+           const confirmPassword = document.getElementById('confirmPassword').value;
+           
+           if (password !== confirmPassword) {
+               showAlert('Le password non coincidono!', 'error');
+               return;
+           }
+           
+           if (await register(nome, email, password)) {
+               document.getElementById('authSection').style.display = 'none';
+               registerForm.reset();
+           }
+       });
+   }
+   
+   // Admin login submit
+   const adminLoginBtn = document.getElementById('adminLoginBtn');
+   if (adminLoginBtn) {
+       adminLoginBtn.addEventListener('click', async function() {
+           const password = document.getElementById('adminPassword').value;
+           
+           if (await adminLogin(password)) {
+               document.getElementById('adminPassword').value = '';
+           }
+       });
+   }
+   
+   // Click su createScommessa
+   const createScommessaBtn = document.getElementById('createScommessaBtn');
+   if (createScommessaBtn) {
+       createScommessaBtn.addEventListener('click', function() {
+           document.getElementById('noScommessaMessage').style.display = 'none';
+           document.getElementById('scommessaForm').style.display = 'block';
+           
+           // Reset form
+           const predictionForm = document.getElementById('predictionForm');
+           if (predictionForm) {
+               predictionForm.reset();
+           }
+       });
+   }
+   
+   // Click su editScommessa
+   const editScommessaBtn = document.getElementById('editScommessaBtn');
+   if (editScommessaBtn) {
+       editScommessaBtn.addEventListener('click', function() {
+           document.getElementById('existingScommessa').style.display = 'none';
+           document.getElementById('scommessaForm').style.display = 'block';
+           
+           // Popola il form con i dati esistenti
+           if (currentPrevisione) {
+               const cardinale1Select = document.getElementById('cardinale1');
+               const cardinale2Select = document.getElementById('cardinale2');
+               const cardinale3Select = document.getElementById('cardinale3');
+               
+               if (cardinale1Select) {
+                   // Se il cardinale è nella lista, selezionalo, altrimenti seleziona "Altri"
+                   if (CARDINALI.includes(currentPrevisione.cardinale1)) {
+                       cardinale1Select.value = currentPrevisione.cardinale1;
+                   } else {
+                       cardinale1Select.value = 'Altri';
+                       document.getElementById('altro1Container').style.display = 'block';
+                       document.getElementById('altroCardinale1').value = currentPrevisione.cardinale1;
+                   }
+               }
+               
+               if (cardinale2Select) {
+                   if (CARDINALI.includes(currentPrevisione.cardinale2)) {
+                       cardinale2Select.value = currentPrevisione.cardinale2;
+                   } else {
+                       cardinale2Select.value = 'Altri';
+                       document.getElementById('altro2Container').style.display = 'block';
+                       document.getElementById('altroCardinale2').value = currentPrevisione.cardinale2;
+                   }
+               }
+               
+               if (cardinale3Select) {
+                   if (CARDINALI.includes(currentPrevisione.cardinale3)) {
+                       cardinale3Select.value = currentPrevisione.cardinale3;
+                   } else {
+                       cardinale3Select.value = 'Altri';
+                       document.getElementById('altro3Container').style.display = 'block';
+                       document.getElementById('altroCardinale3').value = currentPrevisione.cardinale3;
+                   }
+               }
+               
+               const nome1Input = document.getElementById('nome1');
+               const nome2Input = document.getElementById('nome2');
+               const nome3Input = document.getElementById('nome3');
+               const fumataSelect = document.getElementById('fumata');
+               
+               if (nome1Input) nome1Input.value = currentPrevisione.nome1;
+               if (nome2Input) nome2Input.value = currentPrevisione.nome2;
+               if (nome3Input) nome3Input.value = currentPrevisione.nome3;
+               if (fumataSelect) fumataSelect.value = currentPrevisione.fumata;
+           }
+       });
+   }
+   
+   // Form previsione submit
+   const predictionForm = document.getElementById('predictionForm');
+   if (predictionForm) {
+       predictionForm.addEventListener('submit', async function(e) {
+           e.preventDefault();
+           
+           // Raccogli dati
+           let cardinale1 = document.getElementById('cardinale1').value;
+           let cardinale2 = document.getElementById('cardinale2').value;
+           let cardinale3 = document.getElementById('cardinale3').value;
+           
+           // Gestione campo "Altri"
+           if (cardinale1 === 'Altri') {
+               cardinale1 = document.getElementById('altroCardinale1').value;
+               if (!cardinale1.trim()) {
+                   showAlert('Specificare il primo cardinale', 'error');
+                   return;
+               }
+           }
+           
+           if (cardinale2 === 'Altri') {
+               cardinale2 = document.getElementById('altroCardinale2').value;
+               if (!cardinale2.trim()) {
+                   showAlert('Specificare il secondo cardinale', 'error');
+                   return;
+               }
+           }
+           
+           if (cardinale3 === 'Altri') {
+               cardinale3 = document.getElementById('altroCardinale3').value;
+               if (!cardinale3.trim()) {
+                   showAlert('Specificare il terzo cardinale', 'error');
+                   return;
+               }
+           }
+           
+           const nome1 = document.getElementById('nome1').value.trim();
+           const nome2 = document.getElementById('nome2').value.trim();
+           const nome3 = document.getElementById('nome3').value.trim();
+           const fumata = document.getElementById('fumata').value;
+           
+           // Validazione
+           if (!nome1 || !nome2 || !nome3) {
+               showAlert('Tutti i nomi papali sono obbligatori', 'error');
+               return;
+           }
+           
+           if (!fumata) {
+               showAlert('Selezionare un\'opzione per la fumata bianca', 'error');
+               return;
+           }
+           
+           const formData = {
+               cardinale1,
+               cardinale2,
+               cardinale3,
+               nome1,
+               nome2,
+               nome3,
+               fumata
+           };
+           
+           if (await savePrediction(formData)) {
+               document.getElementById('scommessaForm').style.display = 'none';
+           }
+       });
+   }
+   
+   // Form risultati submit
+   const risultatiForm = document.getElementById('risultatiForm');
+   if (risultatiForm) {
+       risultatiForm.addEventListener('submit', async function(e) {
+           e.preventDefault();
+           
+           const cardinale_eletto = document.getElementById('cardinaleElettoAdmin').value.trim();
+           const nome_scelto = document.getElementById('nomeSceltoPapaAdmin').value.trim();
+           const fumata = document.getElementById('fumataAdmin').value;
+           
+           if (!cardinale_eletto || !nome_scelto || !fumata) {
+               showAlert('Tutti i campi sono obbligatori', 'error');
+               return;
+           }
+           
+           const formData = {
+               cardinale_eletto,
+               nome_scelto,
+               fumata
+           };
+           
+           if (await saveRisultati(formData)) {
+               // Ricarica classifica
+               loadClassifica();
+           }
+       });
+   }
+   
+   // Click su calcolaClassifica
+   const calcolaClassificaBtn = document.getElementById('calcolaClassificaBtn');
+   if (calcolaClassificaBtn) {
+       calcolaClassificaBtn.addEventListener('click', async function() {
+           if (await calcolaClassifica()) {
+               // Ricarica classifica
+               loadClassifica();
+           }
+       });
+   }
+   
+   // Click su saveSettings
+   const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+   if (saveSettingsBtn) {
+       saveSettingsBtn.addEventListener('click', async function() {
+           const deadlineDate = document.getElementById('deadlineDate').value;
+           
+           if (!deadlineDate) {
+               showAlert('Selezionare una data limite', 'error');
+               return;
+           }
+           
+           if (await saveAdminSettings(deadlineDate)) {
+               loadAdminSettings();
+           }
+       });
+   }
 
-  // Password dimenticata
-document.getElementById('forgotPasswordLink')?.addEventListener('click', function(e) {
-  e.preventDefault();
-  showPasswordResetForm();
-});
+   // Password dimenticata
+   document.getElementById('forgotPasswordLink')?.addEventListener('click', function(e) {
+       e.preventDefault();
+       showPasswordResetForm();
+   });
 
-// Torna al login
-document.getElementById('backToLoginLink')?.addEventListener('click', function(e) {
-  e.preventDefault();
-  showLoginForm();
-});
+   // Torna al login
+   document.getElementById('backToLoginLink')?.addEventListener('click', function(e) {
+       e.preventDefault();
+       showLoginForm();
+   });
 
-// Richiedi reset password
-document.getElementById('requestResetBtn')?.addEventListener('click', async function() {
-  const email = document.getElementById('resetEmail').value;
-  
-  if (!email) {
-    showAlert('Inserisci la tua email', 'error');
-    return;
-  }
-  
-  await requestPasswordReset(email);
-});
+   // Richiedi reset password
+   document.getElementById('requestResetBtn')?.addEventListener('click', async function() {
+       const email = document.getElementById('resetEmail').value;
+       
+       if (!email) {
+           showAlert('Inserisci la tua email', 'error');
+           return;
+       }
+       
+       await requestPasswordReset(email);
+   });
 
-// Conferma reset password
-document.getElementById('confirmResetBtn')?.addEventListener('click', async function() {
-  const token = document.getElementById('resetToken').value;
-  const newPassword = document.getElementById('newPassword').value;
-  const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-  
-  if (!token || !newPassword || !confirmNewPassword) {
-    showAlert('Tutti i campi sono obbligatori', 'error');
-    return;
-  }
-  
-  if (newPassword !== confirmNewPassword) {
-    showAlert('Le password non coincidono', 'error');
-    return;
-  }
-  
-  await resetPassword(token, newPassword);
-});
-}
-
-// Richiedi reset password
-async function requestPasswordReset(email) {
-  try {
-    const data = await fetchAPI('auth', 'requestPasswordReset', { email });
-    
-    if (data.success) {
-      showAlert(data.message, 'success');
-      // Mostra il form per inserire il token e la nuova password
-      document.getElementById('requestResetForm').style.display = 'none';
-      document.getElementById('confirmResetForm').style.display = 'block';
-      return true;
-    } else {
-      showAlert(data.message || 'Errore durante la richiesta di reset', 'error');
-      return false;
-    }
-  } catch (error) {
-    console.error('Errore durante la richiesta di reset:', error);
-    showAlert('Errore di connessione al server', 'error');
-    return false;
-  }
-}
-
-// Resetta password con token
-async function resetPassword(token, newPassword) {
-  try {
-    const data = await fetchAPI('auth', 'resetPassword', { 
-      token,
-      newPassword
-    });
-    
-    if (data.success) {
-      showAlert(data.message, 'success');
-      // Torna al login
-      showLoginForm();
-      return true;
-    } else {
-      showAlert(data.message || 'Errore durante il reset della password', 'error');
-      return false;
-    }
-  } catch (error) {
-    console.error('Errore durante il reset della password:', error);
-    showAlert('Errore di connessione al server', 'error');
-    return false;
-  }
-}
-
-// Mostra form per il recupero password
-function showPasswordResetForm() {
-  document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('registerForm').style.display = 'none';
-  document.getElementById('adminLoginForm').style.display = 'none';
-  document.getElementById('passwordResetSection').style.display = 'block';
-  
-  // Reset dei form
-  document.getElementById('requestResetForm').style.display = 'block';
-  document.getElementById('confirmResetForm').style.display = 'none';
-  document.getElementById('resetEmail').value = '';
-  document.getElementById('resetToken').value = '';
-  document.getElementById('newPassword').value = '';
-  document.getElementById('confirmNewPassword').value = '';
+   // Conferma reset password
+   document.getElementById('confirmResetBtn')?.addEventListener('click', async function() {
+       const token = document.getElementById('resetToken').value;
+       const newPassword = document.getElementById('newPassword').value;
+       const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+       
+       if (!token || !newPassword || !confirmNewPassword) {
+           showAlert('Tutti i campi sono obbligatori', 'error');
+           return;
+       }
+       
+       if (newPassword !== confirmNewPassword) {
+           showAlert('Le password non coincidono', 'error');
+           return;
+       }
+       
+       await resetPassword(token, newPassword);
+   });
 }
