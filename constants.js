@@ -255,8 +255,8 @@ const CARDINALI = [
   'Estanislao Esteban Karlic - (non elettore) -  Argentina - 99 anni',
   'Angelo Acerbi - (non elettore) -  Italia - 99 anni',
   'Un vescovo non identificato - ',
-  'Un altro sacerdote non identificato - ', 
-'Un altro laico non identificato - '
+  'Un sacerdote non identificato - ', 
+'Un laico non identificato - '
 
 ];
 
