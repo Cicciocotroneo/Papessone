@@ -47,14 +47,14 @@ function fetchAPI(endpoint, action, data = null) {
       reject(new Error('Errore di connessione al server'));
     };
     
-    // Timeout per sicurezza (15 secondi)
+    // Timeout per sicurezza (60 secondi)
     const timeoutId = setTimeout(() => {
       if (window[callbackName]) {
         delete window[callbackName];
         document.head.removeChild(script);
         reject(new Error('Timeout della richiesta'));
       }
-    }, 15000);
+    }, 60000);
     
     // Aggiungi lo script al documento
     document.head.appendChild(script);
