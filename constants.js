@@ -2,7 +2,6 @@
 
 // Elenco dei cardinali papabili
 const CARDINALI = [
-const CARDINALI_LIST = [
   'Mykola Byčok - (elettore) -  Ucraina - 45 anni',
   'Giorgio Marengo - (elettore) -  Italia - 50 anni',
   'Américo Manuel Alves Aguiar - (elettore) -  Portogallo - 51 anni',
