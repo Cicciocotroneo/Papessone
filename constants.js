@@ -254,9 +254,9 @@ const CARDINALI = [
   'Emmanuel Wamala - (non elettore) -  Uganda - 98 anni',
   'Estanislao Esteban Karlic - (non elettore) -  Argentina - 99 anni',
   'Angelo Acerbi - (non elettore) -  Italia - 99 anni',
-  'altro - vescovo',
-  'altro - sacerdote', 
-'altro - laico'
+  'Un vescovo non identificato - ',
+  'Un altro sacerdote non identificato - ', 
+'Un altro laico non identificato - '
 
 ];
 
