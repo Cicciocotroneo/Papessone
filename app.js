@@ -1008,4 +1008,109 @@ function setupEventListeners() {
             }
         });
     }
+
+  // Password dimenticata
+document.getElementById('forgotPasswordLink')?.addEventListener('click', function(e) {
+  e.preventDefault();
+  showPasswordResetForm();
+});
+
+// Torna al login
+document.getElementById('backToLoginLink')?.addEventListener('click', function(e) {
+  e.preventDefault();
+  showLoginForm();
+});
+
+// Richiedi reset password
+document.getElementById('requestResetBtn')?.addEventListener('click', async function() {
+  const email = document.getElementById('resetEmail').value;
+  
+  if (!email) {
+    showAlert('Inserisci la tua email', 'error');
+    return;
+  }
+  
+  await requestPasswordReset(email);
+});
+
+// Conferma reset password
+document.getElementById('confirmResetBtn')?.addEventListener('click', async function() {
+  const token = document.getElementById('resetToken').value;
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+  
+  if (!token || !newPassword || !confirmNewPassword) {
+    showAlert('Tutti i campi sono obbligatori', 'error');
+    return;
+  }
+  
+  if (newPassword !== confirmNewPassword) {
+    showAlert('Le password non coincidono', 'error');
+    return;
+  }
+  
+  await resetPassword(token, newPassword);
+});
+}
+
+// Richiedi reset password
+async function requestPasswordReset(email) {
+  try {
+    const data = await fetchAPI('auth', 'requestPasswordReset', { email });
+    
+    if (data.success) {
+      showAlert(data.message, 'success');
+      // Mostra il form per inserire il token e la nuova password
+      document.getElementById('requestResetForm').style.display = 'none';
+      document.getElementById('confirmResetForm').style.display = 'block';
+      return true;
+    } else {
+      showAlert(data.message || 'Errore durante la richiesta di reset', 'error');
+      return false;
+    }
+  } catch (error) {
+    console.error('Errore durante la richiesta di reset:', error);
+    showAlert('Errore di connessione al server', 'error');
+    return false;
+  }
+}
+
+// Resetta password con token
+async function resetPassword(token, newPassword) {
+  try {
+    const data = await fetchAPI('auth', 'resetPassword', { 
+      token,
+      newPassword
+    });
+    
+    if (data.success) {
+      showAlert(data.message, 'success');
+      // Torna al login
+      showLoginForm();
+      return true;
+    } else {
+      showAlert(data.message || 'Errore durante il reset della password', 'error');
+      return false;
+    }
+  } catch (error) {
+    console.error('Errore durante il reset della password:', error);
+    showAlert('Errore di connessione al server', 'error');
+    return false;
+  }
+}
+
+// Mostra form per il recupero password
+function showPasswordResetForm() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('adminLoginForm').style.display = 'none';
+  document.getElementById('passwordResetSection').style.display = 'block';
+  
+  // Reset dei form
+  document.getElementById('requestResetForm').style.display = 'block';
+  document.getElementById('confirmResetForm').style.display = 'none';
+  document.getElementById('resetEmail').value = '';
+  document.getElementById('resetToken').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmNewPassword').value = '';
 }
