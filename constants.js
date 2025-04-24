@@ -2,7 +2,7 @@
 
 // Elenco dei cardinali papabili
 const CARDINALI = [
-   'Mykola Byčok - (elettore) -  Ucraina - 45 anni',
+'Mykola Byčok - (elettore) -  Ucraina - 45 anni',
 'Giorgio Marengo - (elettore) -  Italia - 50 anni',
 'Américo Manuel Alves Aguiar - (elettore) -  Portogallo - 51 anni',
 'George Jacob Koovakad - (elettore) -  India - 51 anni',
