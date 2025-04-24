@@ -66,7 +66,19 @@ function fetchAPI(endpoint, action, data = null) {
 document.addEventListener('DOMContentLoaded', async () => {
     // Gestione sezioni
     setupEventListeners();
-    
+    // Test connessione all'avvio
+testConnection();
+
+// Funzione per testare la connessione
+function testConnection() {
+  fetchAPI('test', 'connection')
+    .then(response => {
+      console.log('✅ Connessione al server: OK', response);
+    })
+    .catch(error => {
+      console.error('❌ Errore di connessione al server:', error);
+    });
+}
     // Verifica login utente
     if (token) {
         await checkAuthStatus();
