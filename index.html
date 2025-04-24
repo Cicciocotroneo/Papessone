@@ -496,8 +496,46 @@
                         <input type="password" id="loginPassword" required>
                     </div>
                     <button type="submit">Accedi</button>
+                    <div class="form-links">
+  <a href="#" id="forgotPasswordLink">Password dimenticata?</a>
+</div>
                 </form>
             </div>
+            <!-- Sezione recupero password -->
+<div id="passwordResetSection" class="form-container" style="display: none;">
+  <h2>Recupera Password</h2>
+  
+  <!-- Fase 1: Richiedi reset -->
+  <div id="requestResetForm">
+    <p>Inserisci la tua email per ricevere il codice di reset.</p>
+    <div class="form-group">
+      <label for="resetEmail">Email</label>
+      <input type="email" id="resetEmail" required>
+    </div>
+    <button type="button" id="requestResetBtn">Richiedi Reset</button>
+    <div class="form-links">
+      <a href="#" id="backToLoginLink">Torna al login</a>
+    </div>
+  </div>
+  
+  <!-- Fase 2: Inserisci codice e nuova password -->
+  <div id="confirmResetForm" style="display: none;">
+    <p>Inserisci il codice di reset e la nuova password.</p>
+    <div class="form-group">
+      <label for="resetToken">Codice Reset</label>
+      <input type="text" id="resetToken" required>
+    </div>
+    <div class="form-group">
+      <label for="newPassword">Nuova Password</label>
+      <input type="password" id="newPassword" required>
+    </div>
+    <div class="form-group">
+      <label for="confirmNewPassword">Conferma Nuova Password</label>
+      <input type="password" id="confirmNewPassword" required>
+    </div>
+    <button type="button" id="confirmResetBtn">Conferma Reset</button>
+  </div>
+</div>
             
             <div class="tab-content" id="register">
                 <form id="registerForm">
