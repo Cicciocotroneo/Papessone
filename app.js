@@ -1,7 +1,7 @@
 // app.js - Script Frontend per Il Papessone
 
 // Configurazione API (sostituisci con l'URL della tua Web App)
-const API_URL = 'https://script.google.com/macros/s/AKfycbxXbzQUB-x8DmDytUbvNV8QugxmgZiWnz9GqUPoATW7c97PfoEHLKkTtAKh1IF6lg_z/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyguFuhfTU2qzi20ddscBWAefgnxUynk77sFpcJ-Ou-ZJwYbcM1E6d8LhW7smjQdiqj/exec';
 
 // Token di autenticazione memorizzato localmente
 let token = localStorage.getItem('token');
