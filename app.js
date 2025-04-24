@@ -680,7 +680,7 @@ function populateCardinalSelect() {
     });
     
     // Popola le opzioni per la fumata bianca
-    const fumataSelect = document.getElementById('fumata');
+ /*   const fumataSelect = document.getElementById('fumata');
     if (fumataSelect) {
         OPZIONI_FUMATA.forEach(opzione => {
             const option = document.createElement('option');
@@ -688,7 +688,7 @@ function populateCardinalSelect() {
             option.textContent = opzione.label;
             fumataSelect.appendChild(option);
         });
-    }
+    } */
 }
 
 // Mostra un messaggio di alert
