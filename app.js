@@ -11,30 +11,55 @@ let currentPrevisione = null;
 let impostazioni = null;
 
 // Funzione per fare richieste all'API
-async function fetchAPI(endpoint, action, data = null) {
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        endpoint,
-        action,
-        token,
-        data
-      })
-    });
+// Funzione per fare richieste all'API utilizzando JSONP (aggira CORS)
+function fetchAPI(endpoint, action, data = null) {
+  return new Promise((resolve, reject) => {
+    // Crea un nome di callback unico
+    const callbackName = 'jsonpCallback_' + Date.now() + Math.floor(Math.random() * 1000);
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+    // Crea una funzione globale temporanea
+    window[callbackName] = function(response) {
+      // Pulisci creando la funzione callback
+      delete window[callbackName];
+      // Rimuovi lo script quando terminato
+      if (script.parentNode) document.head.removeChild(script);
+      resolve(response);
+    };
+    
+    // Crea query string per i parametri
+    let url = API_URL + '?callback=' + callbackName + '&endpoint=' + endpoint + '&action=' + action;
+    
+    // Aggiungi token se presente
+    if (token) url += '&token=' + encodeURIComponent(token);
+    
+    // Aggiungi dati se presenti (converti oggetti in JSON)
+    if (data) {
+      url += '&data=' + encodeURIComponent(JSON.stringify(data));
     }
     
-    return await response.json();
-  } catch (error) {
-    console.error('Errore API:', error);
-    throw error;
-  }
+    // Crea elemento script
+    const script = document.createElement('script');
+    script.src = url;
+    
+    // Gestione errori
+    script.onerror = function() {
+      delete window[callbackName];
+      document.head.removeChild(script);
+      reject(new Error('Errore di connessione al server'));
+    };
+    
+    // Timeout per sicurezza (15 secondi)
+    const timeoutId = setTimeout(() => {
+      if (window[callbackName]) {
+        delete window[callbackName];
+        document.head.removeChild(script);
+        reject(new Error('Timeout della richiesta'));
+      }
+    }, 15000);
+    
+    // Aggiungi lo script al documento
+    document.head.appendChild(script);
+  });
 }
 
 // Inizializzazione
