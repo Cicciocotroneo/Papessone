@@ -322,10 +322,15 @@ async function loadLatestPredictions() {
             
             if (data.previsioni && data.previsioni.length > 0) {
                 predictionsContainer.innerHTML = '';
-                
+                   // Ordina per data di modifica (se esiste) o data di creazione
+                const sortedPredictions = data.previsioni.sort((a, b) => {
+                    const dateA = a.data_modifica ? new Date(a.data_modifica) : new Date(a.data_creazione);
+                    const dateB = b.data_modifica ? new Date(b.data_modifica) : new Date(b.data_creazione);
+                    return dateB - dateA; // Ordine decrescente (più recenti prima)
+                });
                 // Mostra solo le ultime 20 previsioni
-                const recentPredictions = data.previsioni.slice(0, 20);
-                
+             /*   const recentPredictions = data.previsioni.slice(0, 20); */
+                        sortedPredictions.forEach(prediction => {
                 recentPredictions.forEach(prediction => {
                     const predictionCard = document.createElement('div');
                     predictionCard.className = 'prediction-card';
