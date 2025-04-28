@@ -380,7 +380,7 @@ async function loadUserPrediction() {
         if (data.success) {
             if (data.previsione) {
                 currentPrevisione = data.previsione;
-                
+                console.log("Dati previsione:", currentPrevisione);
                 // Aggiorna UI
                 document.getElementById('noScommessaMessage').style.display = 'none';
                 document.getElementById('scommessaForm').style.display = 'none';
