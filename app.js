@@ -329,8 +329,8 @@ async function loadLatestPredictions() {
                     return dateB - dateA; // Ordine decrescente (più recenti prima)
                 });
                 // Mostra solo le ultime 20 previsioni
-             /*   const recentPredictions = data.previsioni.slice(0, 20); */
-                        sortedPredictions.forEach(prediction => {
+              const recentPredictions = data.previsioni.slice(0, 30);
+     
                 recentPredictions.forEach(prediction => {
                     const predictionCard = document.createElement('div');
                     predictionCard.className = 'prediction-card';
