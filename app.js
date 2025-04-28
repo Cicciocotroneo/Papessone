@@ -312,6 +312,7 @@ function showLoginForm() {
 // FUNZIONI PER LE PREVISIONI
 
 // Carica le previsioni recenti
+// Carica le previsioni recenti
 async function loadLatestPredictions() {
     try {
         const data = await fetchAPI('previsioni', 'getAll');
@@ -322,15 +323,15 @@ async function loadLatestPredictions() {
             if (data.previsioni && data.previsioni.length > 0) {
                 predictionsContainer.innerHTML = '';
                 
-                // Mostra solo le ultime 5 previsioni
-                const recentPredictions = data.previsioni.slice(0, 5);
+                // Mostra solo le ultime 20 previsioni
+                const recentPredictions = data.previsioni.slice(0, 20);
                 
                 recentPredictions.forEach(prediction => {
                     const predictionCard = document.createElement('div');
                     predictionCard.className = 'prediction-card';
                     
-                    const date = new Date(prediction.data_creazione);
-                    const formattedDate = date.toLocaleDateString('it-IT', {
+                    const dateCreazione = new Date(prediction.data_creazione);
+                    const formattedDateCreazione = dateCreazione.toLocaleDateString('it-IT', {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
@@ -338,10 +339,26 @@ async function loadLatestPredictions() {
                         minute: '2-digit'
                     });
                     
+                    // Formatta la data di modifica se esiste
+                    let formattedDateModifica = "N/A";
+                    if (prediction.data_modifica) {
+                        const dateModifica = new Date(prediction.data_modifica);
+                        formattedDateModifica = dateModifica.toLocaleDateString('it-IT', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+                    
                     predictionCard.innerHTML = `
                         <div class="prediction-header">
                             <h3>${prediction.nome_utente}</h3>
-                            <div class="prediction-date">${formattedDate}</div>
+                            <div class="prediction-dates">
+                                <div class="prediction-date">Creata: ${formattedDateCreazione}</div>
+                                <div class="prediction-date">Ultima modifica: ${formattedDateModifica}</div>
+                            </div>
                         </div>
                         <div class="prediction-content">
                             <h4>Cardinali</h4>
