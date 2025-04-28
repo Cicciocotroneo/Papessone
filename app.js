@@ -395,6 +395,29 @@ async function loadUserPrediction() {
                 document.getElementById('showNome3').textContent = currentPrevisione.nome3;
                 document.getElementById('showFumata').textContent = currentPrevisione.fumata;
                 
+                // Formatta e mostra le date di creazione e modifica
+                if (currentPrevisione.data_creazione) {
+                    const dataCreazione = new Date(currentPrevisione.data_creazione);
+                    document.getElementById('showDataCreazione').textContent = dataCreazione.toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+                
+                if (currentPrevisione.data_modifica) {
+                    const dataModifica = new Date(currentPrevisione.data_modifica);
+                    document.getElementById('showDataModifica').textContent = dataModifica.toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+                
                 // Controlla se siamo oltre la deadline
                 checkDeadline();
             } else {
