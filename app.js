@@ -73,15 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (token) {
         await checkAuthStatus();
     }
-
- // Aggiorna il messaggio di benvenuto
-    updateWelcomeMessage();
-  
+    
     // Carica previsioni recenti
     loadLatestPredictions();
-
- 
-  
+    
     // Carica classifica se disponibile
     loadClassifica();
     
@@ -658,11 +653,6 @@ function showSection(sectionId) {
             loadUserData();
             loadUserPrediction();
         }
-
-          // Se è la sezione home, aggiorna il messaggio di benvenuto
-    if (sectionId === 'home') {
-        updateWelcomeMessage();
-    }
         
         // Se è la sezione classifica, carica la classifica
         if (sectionId === 'classifica') {
@@ -1182,34 +1172,3 @@ function setupEventListeners() {
        await resetPassword(token, newPassword);
    });
 }
-// Funzione per aggiornare il testo di benvenuto
-async function updateWelcomeMessage() {
-  try {
-    // Verifica se la classifica è stata pubblicata
-    const data = await fetchAPI('classifica', 'get');
-    
-    if (data.success && data.classifica && data.classifica.length > 0) {
-      // La classifica è stata pubblicata, ottieni il vincitore
-      const vincitore = data.classifica[0]; // Primo in classifica
-      
-      // Aggiorna il titolo e il testo di benvenuto
-      const welcomeTitle = document.querySelector('.welcome-card h2');
-      const welcomeText = document.querySelector('.welcome-card .welcome-text');
-      
-      if (welcomeTitle) {
-        welcomeTitle.textContent = 'Habemus Papessonem';
-      }
-      
-      if (welcomeText) {
-        welcomeText.innerHTML = `
-          <p class="proclamation">Nuntio vobis gaudium magnum, habemus Papessonem.</p>
-          <p class="winner-proclamation">Eminentissimum a reverendissimum Zimbellum, <strong>${vincitore.nome_utente}</strong></p>
-          <p>Congratulazioni al vincitore e grazie a tutti i partecipanti!</p>
-        `;
-      }
-    }
-  } catch (error) {
-    console.error('Errore nel recupero della classifica:', error);
-  }
-}
-
