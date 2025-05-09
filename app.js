@@ -653,6 +653,11 @@ function showSection(sectionId) {
             loadUserData();
             loadUserPrediction();
         }
+
+          // Se è la sezione home, aggiorna il messaggio di benvenuto
+    if (sectionId === 'home') {
+        updateWelcomeMessage();
+    }
         
         // Se è la sezione classifica, carica la classifica
         if (sectionId === 'classifica') {
