@@ -73,10 +73,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (token) {
         await checkAuthStatus();
     }
-    
+
+ // Aggiorna il messaggio di benvenuto
+    updateWelcomeMessage();
+  
     // Carica previsioni recenti
     loadLatestPredictions();
-    
+
+ 
+  
     // Carica classifica se disponibile
     loadClassifica();
     
